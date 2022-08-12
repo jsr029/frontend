@@ -1,6 +1,11 @@
 
 import { useState, useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { FaUser } from 'react-icons/fa'
+import { register, reset } from '../features/auth/authSlice'
+import Spinner from '../components/Spinner'
 
 function Register() {
     const [formData, setFormData] = useState({
@@ -13,14 +18,43 @@ function Register() {
 
     const { firstName, lastName, email, password, password2 } = formData
 
-    const onChange = (e) => {
-        setFormData((prevState) => ({
-            ...prevState,
-            [e.target.firstName]: e.target.value,        
-        }))
-    }
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
+
+    const { user, isLoading, isError, isSuccess, message } = useSelector((state) => state.auth)
+
+    useEffect(() => {
+        if(isError){
+            toast.error(message)
+        }
+        if(isSuccess || user){
+            navigate('/')
+        }
+        dispatch(reset())
+    }, [user, isLoading, isError, isSuccess, message, navigate, dispatch])
+
     const onSubmit = (e) => {
         e.preventDefault()
+        if(password !== password2){
+            toast.error('Passwords do not match')
+        }else{
+            const userData = {
+                firstName,
+                lastName,
+                email,
+                password
+            }
+            dispatch(register(userData))
+        }
+    }
+    const handleChange = (e) =>{
+        setFormData((prevState) => ({
+            ...prevState,
+            [e.target.name]: e.target.value
+        }))
+    }
+    if(isLoading){
+        return <Spinner />
     }
   return (
     <>
@@ -40,7 +74,7 @@ function Register() {
                         name="firstName" 
                         value={firstName} 
                         placeholder="Enter your firstName" 
-                        onChange = {()=>onChange()}    
+                        onChange = {(e)=> handleChange(e)}    
                         />
                 </div>
                 <div className='form-group'>
@@ -51,7 +85,7 @@ function Register() {
                         name="lastName" 
                         value={lastName} 
                         placeholder="Enter your lastName" 
-                        onChange = {onChange}    
+                        onChange = {(e)=> handleChange(e)}    
                         />
                 </div>
                 <div className='form-group'>
@@ -62,7 +96,7 @@ function Register() {
                         name="email" 
                         value={email} 
                         placeholder="Enter your email" 
-                        onChange = {onChange}    
+                        onChange = {(e)=> handleChange(e)}    
                         />
                 </div>
                 <div className='form-group'>
@@ -73,7 +107,7 @@ function Register() {
                         name="password" 
                         value={password} 
                         placeholder="Enter your password" 
-                        onChange = {onChange}    
+                        onChange = {(e)=> handleChange(e)}    
                         />
                 </div>
                 <div className='form-group'>
@@ -84,7 +118,7 @@ function Register() {
                         name="password2" 
                         value={password2} 
                         placeholder="Confirm your password" 
-                        onChange = {onChange}    
+                        onChange = {(e)=> handleChange(e)}    
                         />
                 </div>
                 <div className='form-group'>
